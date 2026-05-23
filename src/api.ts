@@ -196,7 +196,7 @@ export async function fetchAirQuality(googleApiKey?: string): Promise<AirQuality
  * Maps search responses to our custom Place objects.
  */
 export function searchPlacesViaGoogle(query: string, googleApiKey: string): Promise<Place[]> {
-  return new Promise(async (resolve) => {
+  return new Promise(async (resolve, reject) => {
     try {
       await loadGoogleMapsSDK(googleApiKey);
 
@@ -218,7 +218,7 @@ export function searchPlacesViaGoogle(query: string, googleApiKey: string): Prom
         },
         async (results: any[], status: any) => {
           if (status !== (window as any).google.maps.places.PlacesServiceStatus.OK || !results) {
-            resolve([]);
+            reject(new Error('Google Places API returned status: ' + status));
             return;
           }
 
@@ -304,7 +304,7 @@ export function searchPlacesViaGoogle(query: string, googleApiKey: string): Prom
       );
     } catch (e) {
       console.error('Google search error:', e);
-      resolve([]);
+      reject(e);
     }
   });
 }
