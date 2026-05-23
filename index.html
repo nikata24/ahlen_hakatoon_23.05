@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="https://api.iconify.design/solar:map-point-wave-bold-duotone.svg?color=%2300f2fe" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO Optimization -->
+    <title>Ahlen Agentic Explorer | Интеллектуальный ИИ-Гид по Алену</title>
+    <meta name="description" content="Интеллектуальный ИИ-агент для исследования города Ален (Германия). Подбирает лучшие заведения, парки и развлечения на основе вашего возраста, настроения, бюджета и погоды." />
+    
+    <!-- Google Fonts: Modern & Technical -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet JS & CSS: Free Premium Interactive Maps (No Key Required for immediate gorgeous interactive map!) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <!-- Premium Glowing Ambient Orbs -->
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+
+    <div id="app">
+      <!-- HEADER -->
+      <header class="app-header">
+        <div class="header-logo">
+          <span class="logo-icon">🤖</span>
+          <div class="logo-text">
+            <h1>Ahlen Agentic Explorer</h1>
+            <p>Stadt-Entdecker KI-Agent</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button id="settings-btn" class="icon-btn" title="Настройки API" aria-label="Открыть настройки API">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>Настройки API</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN LAYOUT -->
+      <main class="app-content">
+        
+        <!-- PREFERENCES FORM SECTION -->
+        <section class="preferences-panel glass-card">
+          <div class="section-title">
+            <span class="badge">Шаг 1</span>
+            <h2>Настройте ИИ-Агента</h2>
+            <p>Укажите свои параметры для проведения интеллектуального анализа мест Алена</p>
+          </div>
+
+          <form id="preferences-form">
+            
+            <!-- Mood / Category -->
+            <div class="form-group">
+              <label for="pref-mood">Настроение / Занятие</label>
+              <div class="custom-select-wrapper">
+                <select id="pref-mood" required>
+                  <option value="relax" selected>🌳 Прогулки, природа и отдых (Relax)</option>
+                  <option value="nightlife">🍹 Ночная жизнь, бары и клубы (Nightlife)</option>
+                  <option value="shopping">🛍️ Шопинг и прогулки по магазинам (Shopping)</option>
+                  <option value="culinary">🍕 Гастрономическое путешествие (Culinary)</option>
+                  <option value="culture">🎭 Культура, музеи и история (Culture)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-three">
+              <!-- Age Group -->
+              <div class="form-group">
+                <label for="pref-age">Возрастная группа</label>
+                <select id="pref-age" required>
+                  <option value="youth">⚡ Молодежь (16-25 лет)</option>
+                  <option value="adults" selected>💼 Взрослые (26-55 лет)</option>
+                  <option value="seniors">🧸 Семьи / Старшие (55+ лет)</option>
+                </select>
+              </div>
+
+              <!-- Budget -->
+              <div class="form-group">
+                <label for="pref-budget">Бюджет</label>
+                <select id="pref-budget" required>
+                  <option value="1">€ — Экономно / Бесплатно</option>
+                  <option value="2" selected>€€ — Умеренно</option>
+                  <option value="3">€€€ — Премиум</option>
+                </select>
+              </div>
+
+              <!-- Time Frame -->
+              <div class="form-group">
+                <label for="pref-time">Время суток</label>
+                <select id="pref-time" required>
+                  <option value="morning">🌅 Утро (06:00 - 12:00)</option>
+                  <option value="afternoon" selected>☀️ День (12:00 - 18:00)</option>
+                  <option value="evening">🌆 Вечер (18:00 - 22:00)</option>
+                  <option value="night">🌙 Ночь (22:00 - 06:00)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Agent Personality Selector -->
+            <div class="form-group">
+              <label>Характер ИИ-Агента</label>
+              <div class="persona-grid">
+                <label class="persona-card active" for="persona-expert">
+                  <input type="radio" id="persona-expert" name="agent-personality" value="expert" checked>
+                  <div class="persona-info">
+                    <span class="persona-emoji">🕵️‍♂️</span>
+                    <div class="persona-details">
+                      <strong>Местный Эксперт</strong>
+                      <small>der Lokale - знает историю и скрытые жемчужины</small>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="persona-card" for="persona-adventurer">
+                  <input type="radio" id="persona-adventurer" name="agent-personality" value="adventurer">
+                  <div class="persona-info">
+                    <span class="persona-emoji">🧗‍♂️</span>
+                    <div class="persona-details">
+                      <strong>Искатель Приключений</strong>
+                      <small>der Abenteurer - любит активность и драйв</small>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="persona-card" for="persona-family">
+                  <input type="radio" id="persona-family" name="agent-personality" value="family">
+                  <div class="persona-info">
+                    <span class="persona-emoji">🏡</span>
+                    <div class="persona-details">
+                      <strong>Семейный Планировщик</strong>
+                      <small>der Familienmensch - уют, безопасность и комфорт</small>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Submit Button with Neon Pulse -->
+            <button type="submit" id="submit-btn" class="pulse-button">
+              <span class="btn-glow-element"></span>
+              <span class="btn-text">ЗАПУСТИТЬ АГЕНТА АНАЛИЗА</span>
+              <span class="btn-icon">⚡</span>
+            </button>
+          </form>
+        </section>
+
+        <!-- AGENT PROCESS MONITOR (TERMINAL SCREEN) -->
+        <section id="agent-monitor" class="agent-monitor-panel glass-card hidden">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="terminal-title">AHLEN_AI_AGENT_CORE // LOGS</div>
+            <div class="terminal-status"><span class="pulse-dot"></span> RUNNING</div>
+          </div>
+          <div id="terminal-body" class="terminal-body">
+            <!-- Simulated logs print here -->
+          </div>
+          <div class="terminal-footer">
+            <span class="terminal-prompt">$</span> <span class="terminal-cursor">_</span>
+          </div>
+        </section>
+
+        <!-- RESULTS SECTION -->
+        <section id="results-section" class="results-layout hidden">
+          
+          <!-- Column 1: Widgets (Weather & Air Quality) -->
+          <div class="widgets-column">
+            
+            <!-- Weather Widget -->
+            <div class="widget-card weather-card glass-card">
+              <div class="widget-header">
+                <h3>Погода в Алене</h3>
+                <span class="live-badge">LIVE</span>
+              </div>
+              <div class="weather-main">
+                <img id="weather-icon" src="" alt="Иконка погоды" />
+                <div class="weather-temp-container">
+                  <span id="weather-temp" class="weather-temp">--°C</span>
+                  <span id="weather-condition" class="weather-desc">Загрузка...</span>
+                </div>
+              </div>
+              <div class="weather-details-grid">
+                <div class="weather-detail-item">
+                  <span class="detail-label">Ощущается как</span>
+                  <span id="weather-feels" class="detail-value">--°C</span>
+                </div>
+                <div class="weather-detail-item">
+                  <span class="detail-label">Влажность</span>
+                  <span id="weather-humidity" class="detail-value">--%</span>
+                </div>
+                <div class="weather-detail-item">
+                  <span class="detail-label">Ветер</span>
+                  <span id="weather-wind" class="detail-value">-- км/ч</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Air Quality Widget -->
+            <div class="widget-card aqi-card glass-card">
+              <div class="widget-header">
+                <h3>Чистота воздуха (AQI)</h3>
+                <span id="aqi-status-badge" class="aqi-status-badge good">Отличный</span>
+              </div>
+              <div class="aqi-main">
+                <div class="aqi-index-container">
+                  <span id="aqi-index" class="aqi-value">--</span>
+                  <span class="aqi-label">Индекс</span>
+                </div>
+                <div class="aqi-pollutants">
+                  <div class="pollutant-item">
+                    <span>PM2.5:</span>
+                    <strong id="aqi-pm25">-- мкг/м³</strong>
+                  </div>
+                  <div class="pollutant-item">
+                    <span>PM10:</span>
+                    <strong id="aqi-pm10">-- мкг/м³</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="aqi-message-box">
+                <p id="aqi-recommendation">Анализируем экологические показатели Алена...</p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Column 2: Cards Top 5 -->
+          <div class="places-column">
+            <div class="results-header-bar">
+              <h2>Рекомендации Агента: ТОП-5 мест</h2>
+              <span class="places-count">Найдено 5 лучших совпадений</span>
+            </div>
+            <div id="places-list" class="places-list">
+              <!-- Dynamically rendered Place Cards go here -->
+            </div>
+          </div>
+
+          <!-- Column 3: Interactive Map -->
+          <div class="map-column">
+            <div class="map-wrapper glass-card">
+              <div class="map-header">
+                <h3>Карта Алена с рекомендациями</h3>
+                <button id="recenter-map-btn" class="map-btn">Центрировать</button>
+              </div>
+              <div id="map-container" class="map-container">
+                <!-- Leaflet interactive map mounts here -->
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- SETTINGS MODAL -->
+      <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-card">
+          <div class="modal-header">
+            <h3>⚙️ Настройки Google API и Weather</h3>
+            <button id="close-modal-btn" class="close-btn">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p class="modal-tip">По умолчанию приложение использует **предустановленную базу данных Алена** и **бесплатные погодные датчики**, так что вы можете тестировать его сразу же! Для живых запросов введите ваши ключи:</p>
+            
+            <form id="settings-form">
+              <div class="form-group">
+                <label for="api-google-key">Google Maps API Key (Places, Maps)</label>
+                <input type="password" id="api-google-key" placeholder="AIzaSy..." autocomplete="off" />
+                <small class="input-help">Необходим для поиска живых заведений через Google Places API и загрузки фото.</small>
+              </div>
+
+              <div class="form-group">
+                <label for="api-weather-key">OpenWeather API Key (По желанию)</label>
+                <input type="password" id="api-weather-key" placeholder="56fa7e..." autocomplete="off" />
+                <small class="input-help">Необходим для точных живых данных погоды (иначе сработает бесплатная резервная служба Open-Meteo).</small>
+              </div>
+
+              <div class="modal-actions">
+                <button type="button" id="clear-keys-btn" class="btn secondary">Очистить ключи</button>
+                <button type="submit" class="btn primary">Сохранить</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Main Module Application -->
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
