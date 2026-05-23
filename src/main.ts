@@ -9,8 +9,7 @@ import { fetchWeather, fetchAirQuality, searchPlacesViaGoogle } from './api';
 let currentPlaces: Place[] = [];
 let weatherInfo: WeatherData | null = null;
 let airQualityInfo: AirQualityData | null = null;
-let googleApiKey = localStorage.getItem('api_google_key') || '';
-let weatherApiKey = localStorage.getItem('api_weather_key') || '';
+// All API Keys are secured and stored strictly on the PHP backend.
 
 // Leaflet Map Instance
 let mapInstance: any = null;
@@ -28,58 +27,21 @@ const agentMonitor = document.getElementById('agent-monitor') as HTMLDivElement;
 const terminalBody = document.getElementById('terminal-body') as HTMLDivElement;
 const resultsSection = document.getElementById('results-section') as HTMLDivElement;
 const placesList = document.getElementById('places-list') as HTMLDivElement;
-const settingsBtn = document.getElementById('settings-btn') as HTMLButtonElement;
-const settingsModal = document.getElementById('settings-modal') as HTMLDivElement;
-const closeModalBtn = document.getElementById('close-modal-btn') as HTMLButtonElement;
-const settingsForm = document.getElementById('settings-form') as HTMLFormElement;
-const clearKeysBtn = document.getElementById('clear-keys-btn') as HTMLButtonElement;
-const apiGoogleKeyInput = document.getElementById('api-google-key') as HTMLInputElement;
-const apiWeatherKeyInput = document.getElementById('api-weather-key') as HTMLInputElement;
+// Settings cog and keys input are removed to secure API keys on the backend.
 const recenterMapBtn = document.getElementById('recenter-map-btn') as HTMLButtonElement;
 
 // ==========================================================================
 // EVENT LISTENERS INITIALIZATION
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
-  // Set saved key inputs
-  apiGoogleKeyInput.value = googleApiKey;
-  apiWeatherKeyInput.value = weatherApiKey;
-
   // Form Submit
   if (preferencesForm) {
     preferencesForm.addEventListener('submit', handlePreferencesSubmit);
   }
 
-  // Modal Toggles
-  if (settingsBtn) {
-    settingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
-  }
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
-  }
-
-  // Settings Save
-  if (settingsForm) {
-    settingsForm.addEventListener('submit', handleSettingsSave);
-  }
-
-  // Settings Clear
-  if (clearKeysBtn) {
-    clearKeysBtn.addEventListener('click', handleSettingsClear);
-  }
-
   // Recenter Map
   if (recenterMapBtn) {
     recenterMapBtn.addEventListener('click', recenterMap);
-  }
-
-  // Close modal on overlay click
-  if (settingsModal) {
-    settingsModal.addEventListener('click', (e) => {
-      if (e.target === settingsModal) {
-        settingsModal.classList.add('hidden');
-      }
-    });
   }
 });
 
@@ -125,33 +87,38 @@ async function handlePreferencesSubmit(e: Event) {
   addLog(`[Агент] Параметры анализа: настроение=[${preferences.mood}], возраст=[${preferences.ageGroup}], бюджет=[${preferences.budget}], время=[${preferences.timeOfDay}].`, 'think');
 
   // Load weather and AQI
-  addLog(`[Агент] Запрашиваю текущие погодные условия и экологические показатели г. Ален...`, 'think');
+  addLog(`[Бэкенд-Запрос] Отправка GET на http://localhost:8000/weather.php...`, 'think');
+  addLog(`[Бэкенд-Запрос] Отправка GET на http://localhost:8000/airquality.php...`, 'think');
   
   try {
-    weatherInfo = await fetchWeather(weatherApiKey);
-    airQualityInfo = await fetchAirQuality(googleApiKey);
-    addLog(`[Агент] Погода получена: Температура: ${weatherInfo.temp}°C, Влажность: ${weatherInfo.humidity}%, ${weatherInfo.condition}.`, 'success');
-    addLog(`[Агент] Качество воздуха (AQI): Индекс ${airQualityInfo.aqi} (${airQualityInfo.status}).`, 'success');
+    weatherInfo = await fetchWeather();
+    addLog(`[Бэкенд-Ответ] Погода: ${weatherInfo.temp}°C, влажность ${weatherInfo.humidity}%, ${weatherInfo.condition}.`, 'success');
+    
+    airQualityInfo = await fetchAirQuality();
+    addLog(`[Бэкенд-Ответ] Качество воздуха (AQI): индекс ${airQualityInfo.aqi} (${airQualityInfo.status}).`, 'success');
   } catch (err) {
-    addLog(`[Агент] Предупреждение: Не удалось связаться со спутниковыми датчиками. Использую исторические погодные константы.`, 'warn');
+    addLog(`[Агент] Предупреждение: Не удалось связаться с бэкендом. Применяю резервные параметры.`, 'warn');
   }
 
   // Live Google Places API or Local DB?
   let rawPlaces: Place[] = [];
-  if (googleApiKey.trim() !== '') {
-    addLog(`[Агент] Обнаружен активный Google Maps API Ключ. Инициирую живой поиск в Google Places...`, 'info');
-    const query = getQueryForCategory(preferences.mood);
-    addLog(`[Агент] Отправка запроса Places: "${query}" в г. Ален, Германия. Bypassing CORS via Maps JS SDK...`, 'think');
+  const query = getQueryForCategory(preferences.mood);
+  
+  addLog(`[Бэкенд-Запрос] Отправка GET на http://localhost:8000/places.php?query=${encodeURIComponent(query)}...`, 'think');
+  
+  try {
+    rawPlaces = await searchPlacesViaGoogle(query);
+    addLog(`[Бэкенд-Ответ] Бэкенд успешно вернул ${rawPlaces.length} заведений!`, 'success');
     
-    try {
-      rawPlaces = await searchPlacesViaGoogle(query, googleApiKey);
-      addLog(`[Агент] Успешно получено ${rawPlaces.length} заведений в реальном времени из Google Maps!`, 'success');
-    } catch (err) {
-      addLog(`[Агент] Сбой живого поиска Places. Автоматически переключаюсь на локальную базу данных Алена.`, 'warn');
-      rawPlaces = AHLEN_PLACES;
+    if (rawPlaces.length > 0) {
+      if (rawPlaces[0].id.startsWith('ChI')) {
+        addLog(`[Агент] Источник данных: Живой поиск Google Places API (в реальном времени)!`, 'success');
+      } else {
+        addLog(`[Агент] Источник данных: Локальная база данных (api/places_db.json).`, 'info');
+      }
     }
-  } else {
-    addLog(`[Агент] API Ключ Google не найден. Активирую предустановленную локальную базу данных Алена...`, 'info');
+  } catch (err) {
+    addLog(`[Агент] Сбой бэкенда. Использую резервный массив в браузере.`, 'warn');
     rawPlaces = AHLEN_PLACES;
   }
 
@@ -379,6 +346,68 @@ function renderWeatherAndAQI() {
 }
 
 // ==========================================================================
+// OPENING HOURS HELPER
+// ==========================================================================
+/**
+ * Computes open/closed status and today's schedule from a place's openingHours.
+ * Uses the browser's local time (Europe/Berlin for Ahlen).
+ * Returns { isOpen: boolean|null, todayText: string }
+ */
+function getOpenStatus(place: Place): { isOpen: boolean | null; todayText: string } {
+  if (!place.openingHours) return { isOpen: null, todayText: '' };
+
+  const oh = place.openingHours;
+
+  // Use periods for precise calculation when available
+  const now = new Date();
+  // Day of week: 0=Sun, 1=Mon ... 6=Sat (same as Google)
+  const day = now.getDay();
+  const hhmm = now.getHours() * 100 + now.getMinutes();
+
+  let isOpen: boolean | null = null;
+
+  if (oh.periods && oh.periods.length > 0) {
+    isOpen = false; // default closed unless a period matches
+    for (const period of oh.periods) {
+      const openDay = period.open.day;
+      const openTime = parseInt(period.open.time, 10);
+
+      if (!period.close) {
+        // 24h open (no close means always open)
+        isOpen = true;
+        break;
+      }
+
+      const closeDay = period.close.day;
+      const closeTime = parseInt(period.close.time, 10);
+
+      if (openDay === closeDay) {
+        // Same-day period
+        if (day === openDay && hhmm >= openTime && hhmm < closeTime) {
+          isOpen = true;
+          break;
+        }
+      } else {
+        // Overnight period (e.g., bar opens Fri 18:00, closes Sat 03:00)
+        if (day === openDay && hhmm >= openTime) { isOpen = true; break; }
+        if (day === closeDay && hhmm < closeTime)  { isOpen = true; break; }
+      }
+    }
+  } else if (oh.open_now !== null) {
+    isOpen = oh.open_now;
+  }
+
+  // Find today's text from weekday_text (Google uses Mon=0 in weekday_text, but JS day: 0=Sun)
+  // Google weekday_text: index 0=Monday … 6=Sunday
+  const googleDayIndex = (day === 0) ? 6 : day - 1;
+  const todayText = (oh.weekday_text && oh.weekday_text[googleDayIndex])
+    ? oh.weekday_text[googleDayIndex]
+    : '';
+
+  return { isOpen, todayText };
+}
+
+// ==========================================================================
 // RENDER PLACE CARDS
 // ==========================================================================
 function renderPlaceCards() {
@@ -417,6 +446,35 @@ function renderPlaceCards() {
     const budgetIcons = ['€', '€€', '€€€'];
     const budgetLabel = budgetIcons[place.budget - 1];
 
+    // Opening hours: compute open/closed status right now
+    const { isOpen, todayText } = getOpenStatus(place);
+    let openBadgeHtml = '';
+    if (isOpen === true) {
+      openBadgeHtml = `<span class="pill open-now-pill open">🟢 Открыто сейчас</span>`;
+    } else if (isOpen === false) {
+      openBadgeHtml = `<span class="pill open-now-pill closed">🔴 Закрыто</span>`;
+    }
+    // Today's schedule label (strip the day name prefix, keep just the time part)
+    const todayScheduleHtml = todayText
+      ? `<div class="place-hours-today">
+           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+           <span>${todayText}</span>
+         </div>`
+      : '';
+
+    // Opening hours accordion (full week schedule)
+    const hoursAccordionHtml = (place.openingHours && place.openingHours.weekday_text && place.openingHours.weekday_text.length > 0)
+      ? `<div class="hours-accordion" id="hours-accordion-${place.id}">
+           <div class="hours-header" onclick="document.getElementById('hours-accordion-${place.id}').classList.toggle('open')">
+             <span>Часы работы</span>
+             <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+           </div>
+           <div class="hours-content">
+             ${place.openingHours.weekday_text.map(line => `<div class="hours-row"><span>${line}</span></div>`).join('')}
+           </div>
+         </div>`
+      : '';
+
     card.innerHTML = `
       <div class="place-num-badge">${index + 1}</div>
       <div class="place-image-wrapper">
@@ -436,6 +494,7 @@ function renderPlaceCards() {
           <div class="place-meta-pills">
             <span class="pill category-pill">${categoryNames[place.category]}</span>
             <span class="pill budget-pill">${budgetLabel}</span>
+            ${openBadgeHtml}
           </div>
         </div>
 
@@ -446,7 +505,10 @@ function renderPlaceCards() {
           <span>${place.address}</span>
         </div>
 
+        ${todayScheduleHtml}
+
         <div class="place-footer">
+          ${hoursAccordionHtml}
           <div class="reviews-accordion" id="reviews-accordion-${place.id}">
             <div class="reviews-header" onclick="document.getElementById('reviews-accordion-${place.id}').classList.toggle('open')">
               <span>Отзывы посетителей</span>
@@ -566,33 +628,7 @@ function recenterMap() {
 // ==========================================================================
 // SETTINGS HANDLERS (LOCAL STORAGE MANAGEMENT)
 // ==========================================================================
-function handleSettingsSave(e: Event) {
-  e.preventDefault();
-
-  googleApiKey = apiGoogleKeyInput.value.trim();
-  weatherApiKey = apiWeatherKeyInput.value.trim();
-
-  localStorage.setItem('api_google_key', googleApiKey);
-  localStorage.setItem('api_weather_key', weatherApiKey);
-
-  settingsModal.classList.add('hidden');
-  alert('Настройки API ключей успешно сохранены! Агент перезапустит поиск с новыми живыми параметрами.');
-}
-
-function handleSettingsClear() {
-  if (confirm('Вы уверены, что хотите удалить сохраненные API ключи?')) {
-    googleApiKey = '';
-    weatherApiKey = '';
-    localStorage.removeItem('api_google_key');
-    localStorage.removeItem('api_weather_key');
-    
-    apiGoogleKeyInput.value = '';
-    apiWeatherKeyInput.value = '';
-    
-    settingsModal.classList.add('hidden');
-    alert('Ключи удалены. Агент переключился в демонстрационный режим.');
-  }
-}
+// Settings handlers are removed to secure API keys on the backend.
 
 // ==========================================================================
 // TEXT TRANSLATION HELPERS & API UTILS

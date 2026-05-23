@@ -19,6 +19,11 @@ export interface Place {
   description: string;
   imageUrl: string;
   reviews: string[];
+  openingHours?: {
+    open_now: boolean | null;       // null = unknown
+    weekday_text: string[];         // e.g. ["Montag: 09:00–18:00", ...]
+    periods?: { open: { day: number; time: string }; close?: { day: number; time: string } }[];
+  };
 }
 
 export interface WeatherData {

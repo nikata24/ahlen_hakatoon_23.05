@@ -38,12 +38,7 @@
           </div>
         </div>
 
-        <div class="header-actions">
-          <button id="settings-btn" class="icon-btn" title="Настройки API" aria-label="Открыть настройки API">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-            <span>Настройки API</span>
-          </button>
-        </div>
+        <!-- Settings cog is removed to keep all API keys securely on the backend -->
       </header>
 
       <!-- MAIN LAYOUT -->
@@ -265,37 +260,7 @@
 
       </main>
 
-      <!-- SETTINGS MODAL -->
-      <div id="settings-modal" class="modal-overlay hidden">
-        <div class="modal-content glass-card">
-          <div class="modal-header">
-            <h3>⚙️ Настройки Google API и Weather</h3>
-            <button id="close-modal-btn" class="close-btn">&times;</button>
-          </div>
-          <div class="modal-body">
-            <p class="modal-tip">По умолчанию приложение использует **предустановленную базу данных Алена** и **бесплатные погодные датчики**, так что вы можете тестировать его сразу же! Для живых запросов введите ваши ключи:</p>
-            
-            <form id="settings-form">
-              <div class="form-group">
-                <label for="api-google-key">Google Maps API Key (Places, Maps)</label>
-                <input type="password" id="api-google-key" placeholder="AIzaSy..." autocomplete="off" />
-                <small class="input-help">Необходим для поиска живых заведений через Google Places API и загрузки фото.</small>
-              </div>
-
-              <div class="form-group">
-                <label for="api-weather-key">OpenWeather API Key (По желанию)</label>
-                <input type="password" id="api-weather-key" placeholder="56fa7e..." autocomplete="off" />
-                <small class="input-help">Необходим для точных живых данных погоды (иначе сработает бесплатная резервная служба Open-Meteo).</small>
-              </div>
-
-              <div class="modal-actions">
-                <button type="button" id="clear-keys-btn" class="btn secondary">Очистить ключи</button>
-                <button type="submit" class="btn primary">Сохранить</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+      <!-- Settings modal is removed to keep all API keys securely on the backend -->
 
     </div>
 

@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  title: Ahlen Hackathon API
+  description: |
+    Versioned REST API endpoints providing weather forecast, air quality metrics,
+    and place recommendations for the Ahlen Hackathon portal.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/v1
+    description: Local Server (if run inside api/ directory)
+  - url: http://localhost:8000/api/v1
+    description: Local Server (if run inside root directory)
+  - url: /v1
+    description: Relative Path Server (if run inside api/ directory)
+  - url: /api/v1
+    description: Relative Path Server (if run inside root directory)
+
+paths:
+  /weather.php:
+    get:
+      summary: Retrieve Current Weather Data
+      description: Returns the current temperature, feels-like temperature, humidity, wind speed, weather conditions, and weather icon. Falls back to Open-Meteo if no OpenWeatherMap key is configured on the backend.
+      parameters:
+        - name: lat
+          in: query
+          description: Latitude coordinates. Defaults to Ahlen (51.7622).
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 51.7622
+            minimum: -90
+            maximum: 90
+        - name: lng
+          in: query
+          description: Longitude coordinates. Defaults to Ahlen (7.8931).
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 7.8931
+            minimum: -180
+            maximum: 180
+      responses:
+        '200':
+          description: Successfully retrieved weather data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherData'
+        '400':
+          description: Invalid input parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching weather data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /airquality.php:
+    get:
+      summary: Retrieve Air Quality Metrics
+      description: Returns the AQI, PM2.5, PM10, AQI status description, and activities recommendation. Falls back to Open-Meteo if no Google Air Quality key is configured.
+      parameters:
+        - name: lat
+          in: query
+          description: Latitude coordinates. Defaults to Ahlen (51.7622).
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 51.7622
+            minimum: -90
+            maximum: 90
+        - name: lng
+          in: query
+          description: Longitude coordinates. Defaults to Ahlen (7.8931).
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 7.8931
+            minimum: -180
+            maximum: 180
+      responses:
+        '200':
+          description: Successfully retrieved air quality data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AirQualityData'
+        '400':
+          description: Invalid input parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error while fetching air quality data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /places.php:
+    get:
+      summary: Search and Retrieve Recommended Places
+      description: Returns a list of recommended places matching a search query. Uses Google Places Text Search and Details API on the backend when keys are available; falls back to the local database file (places_db.json) otherwise.
+      parameters:
+        - name: query
+          in: query
+          description: Search term or category keyword (e.g. "парк", "музей", "кофе"). If empty, returns all places.
+          required: false
+          schema:
+            type: string
+            default: ""
+        - name: lat
+          in: query
+          description: Latitude coordinates for Google Places localization. Defaults to Ahlen (51.7622).
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 51.7622
+        - name: lng
+          in: query
+          description: Longitude coordinates for Google Places localization. Defaults to Ahlen (7.8931).
+          required: false
+          schema:
+            type: number
+            format: float
+            default: 7.8931
+      responses:
+        '200':
+          description: Successfully retrieved places.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Place'
+        '400':
+          description: Invalid coordinates parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    WeatherData:
+      type: object
+      required:
+        - temp
+        - feelsLike
+        - humidity
+        - condition
+        - icon
+        - windSpeed
+      properties:
+        temp:
+          type: integer
+          description: Temperature in degrees Celsius.
+          example: 18
+        feelsLike:
+          type: integer
+          description: Apparent feels-like temperature in Celsius.
+          example: 17
+        humidity:
+          type: integer
+          description: Humidity percentage.
+          example: 62
+        condition:
+          type: string
+          description: Short textual description of weather.
+          example: "Переменная облачность"
+        icon:
+          type: string
+          description: URL pointing to weather icon image.
+          example: "https://openweathermap.org/img/wn/02d@2x.png"
+        windSpeed:
+          type: integer
+          description: Wind speed in km/h.
+          example: 12
+
+    AirQualityData:
+      type: object
+      required:
+        - aqi
+        - pm25
+        - pm10
+        - status
+        - recommendation
+      properties:
+        aqi:
+          type: integer
+          description: Air Quality Index (AQI). Higher value indicates worse air.
+          example: 12
+        pm25:
+          type: integer
+          description: PM2.5 concentration.
+          example: 4
+        pm10:
+          type: integer
+          description: PM10 concentration.
+          example: 9
+        status:
+          type: string
+          description: Qualitative Air Quality label.
+          enum: [Отличный, Хороший, Умеренный, Загрязненный, Опасный]
+          example: "Отличный"
+        recommendation:
+          type: string
+          description: Context-aware advice based on AQI level.
+          example: "Качество воздуха идеальное! Отличное время для Berliner Park или Langstsee."
+
+    Place:
+      type: object
+      required:
+        - id
+        - name
+        - category
+        - ageSuitability
+        - budget
+        - timeOfDay
+        - rating
+        - userRatingsTotal
+        - address
+        - coordinates
+        - description
+        - imageUrl
+        - reviews
+      properties:
+        id:
+          type: string
+          description: Unique place ID (e.g. Google Place ID or slug).
+          example: "art_museum"
+        name:
+          type: string
+          description: Name of the place.
+          example: "Kunstmuseum Ahlen"
+        category:
+          type: string
+          description: Category classifying the venue.
+          enum: [relax, nightlife, shopping, culinary, culture]
+          example: "culture"
+        ageSuitability:
+          type: object
+          description: Suitability ratings (1-5) for different age cohorts.
+          required:
+            - youth
+            - adults
+            - seniors
+          properties:
+            youth:
+              type: integer
+              minimum: 1
+              maximum: 5
+              example: 3
+            adults:
+              type: integer
+              minimum: 1
+              maximum: 5
+              example: 5
+            seniors:
+              type: integer
+              minimum: 1
+              maximum: 5
+              example: 5
+        budget:
+          type: integer
+          description: Cost tier. 1 = Cheap (€), 2 = Moderate (€€), 3 = Expensive (€€€).
+          enum: [1, 2, 3]
+          example: 2
+        timeOfDay:
+          type: array
+          description: Best parts of the day to visit.
+          items:
+            type: string
+            enum: [morning, afternoon, evening, night]
+          example: ["morning", "afternoon"]
+        rating:
+          type: number
+          format: float
+          description: Average rating out of 5 stars.
+          example: 4.6
+        userRatingsTotal:
+          type: integer
+          description: Total number of user reviews.
+          example: 312
+        address:
+          type: string
+          description: Street address in Ahlen.
+          example: "Weststraße 98, 59227 Ahlen"
+        coordinates:
+          type: object
+          required:
+            - lat
+            - lng
+          properties:
+            lat:
+              type: number
+              format: float
+              example: 51.7634
+            lng:
+              type: number
+              format: float
+              example: 7.8876
+        description:
+          type: string
+          description: Rich description written in Russian.
+          example: "Современный музей искусств с впечатляющими постоянными и временными экспозициями."
+        imageUrl:
+          type: string
+          description: Image URL showing the venue.
+          example: "https://images.unsplash.com/photo-1554907984-15263bfd63bd?w=600&auto=format&fit=crop&q=80"
+        reviews:
+          type: array
+          description: Snippets of reviews.
+          items:
+            type: string
+          example: ["Отличная коллекция современного искусства!", "Приятный персонал."]
+        openingHours:
+          type: object
+          description: Optional opening schedules.
+          required:
+            - open_now
+            - weekday_text
+          properties:
+            open_now:
+              type: boolean
+              nullable: true
+              description: True if open now, false if closed, null if unknown.
+              example: null
+            weekday_text:
+              type: array
+              description: Textual descriptions of daily opening hours.
+              items:
+                type: string
+              example: ["Montag: Geschlossen", "Dienstag: 10:00–18:00 Uhr"]
+            periods:
+              type: array
+              description: Structured opening periods.
+              items:
+                type: object
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Message detailing the nature of the validation/runtime error.
+          example: "Parameter lat must be a numeric value."
